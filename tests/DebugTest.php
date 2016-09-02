@@ -23,11 +23,6 @@ class DebugTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var string directoryLog
-     */
-    protected $directoryLog = __DIR__ . '/../logs';
-
-    /**
      * Method setUp
      *
      * @see \PHPUnit_Framework_TestCase::setUp()
@@ -38,7 +33,7 @@ class DebugTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $logFile = $this->directoryLog . '/debug.log';
+        $logFile = __DIR__ . '/../logs/debug.log';
 
         !file_exists($logFile) ?: unlink($logFile);
 
@@ -117,7 +112,7 @@ class DebugTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($boolDebug);
         $this->assertTrue($boolDebug);
         $this->assertInternalType('boolean', $boolDebug);
-        $this->assertFileExists($this->directoryLog . '/debug.log');
+        $this->assertFileExists(__DIR__ . '/../logs/debug.log');
     }
 
     /**
@@ -146,13 +141,17 @@ class DebugTest extends \PHPUnit_Framework_TestCase
      */
     public function dumpDataProvider()
     {
+        $stdClass = \stdClass::class;
+        $debugTest = $this;
+        $debug = Debug::class;
+
         return array(
             array(0, 0),
             array(0, null),
             array(1),
             array(1, 2),
             array('foo', 'bar'),
-            array(\stdClass::class, 'string'),
+            array($stdClass, 'string'),
             array(1, $this),
             array(),
             array(Debug::class),
@@ -168,12 +167,12 @@ class DebugTest extends \PHPUnit_Framework_TestCase
                                 'foobar'
                             ),
                             array(
-                                $this
+                                $debugTest
                             ),
                             array(
-                                \stdClass::class,
-                                $this,
-                                Debug::class,
+                                $stdClass,
+                                $debugTest,
+                                $debug,
                             )
                         )
                     )
