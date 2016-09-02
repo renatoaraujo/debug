@@ -2,7 +2,7 @@
   "name": "renatoaraujo/debug",
   "description": "Debug for PHP projects",
   "homepage": "https://github.com/renatoaraujo/debug",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "library",
   "keywords": [
     "debugging",
@@ -18,7 +18,7 @@
   ],
   "minimum-stability": "dev",
   "require": {
-    "php": ">=5.3",
+    "php": ">=5.5",
     "monolog/monolog": "^1.21"
   },
   "autoload": {

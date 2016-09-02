@@ -22,6 +22,9 @@ use Renatoaraujo\Debug;
 class DebugTest extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     * @var string directoryLog
+     */
     protected $directoryLog = __DIR__ . '/../logs';
 
     /**
@@ -37,7 +40,7 @@ class DebugTest extends \PHPUnit_Framework_TestCase
 
         $logFile = $this->directoryLog . '/debug.log';
 
-        !file_exists($logFile) ?: unlink($this->directoryLog . '/debug.log');
+        !file_exists($logFile) ?: unlink($logFile);
 
         $this->assertFileNotExists($logFile);
     }
