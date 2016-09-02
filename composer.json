@@ -1,0 +1,24 @@
+{
+    "name": "renatoaraujo/debug",
+    "description": "Debug for PHP projects",
+    "homepage": "https://github.com/renatoaraujo/debug",
+    "version": "0.1.0",
+    "type": "library",
+    "keywords": "debugging, logging, php, monolog",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Renato Rodrigues de Araujo",
+            "email": "renato.r.araujo@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "monolog/monolog": "^1.21"
+    },
+    "autoload": {
+        "psr-4": {
+            "Renatoaraujo\\": "src/"
+        }
+    }
+}
