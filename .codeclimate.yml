@@ -1,0 +1,20 @@
+---
+engines:
+  phpcodesniffer:
+    enabled: true
+    config:
+      standard: "PSR2"
+      ignore_warnings: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - php
+  fixme:
+    enabled: true
+  phpmd:
+    enabled: true
+ratings:
+  paths:
+  - "**.php"
+exclude_paths: []

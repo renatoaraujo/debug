@@ -1,24 +1,39 @@
 {
-    "name": "renatoaraujo/debug",
-    "description": "Debug for PHP projects",
-    "homepage": "https://github.com/renatoaraujo/debug",
-    "version": "0.1.0",
-    "type": "library",
-    "keywords": "debugging, logging, php, monolog",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Renato Rodrigues de Araujo",
-            "email": "renato.r.araujo@gmail.com"
-        }
-    ],
-    "minimum-stability": "dev",
-    "require": {
-        "monolog/monolog": "^1.21"
-    },
-    "autoload": {
-        "psr-4": {
-            "Renatoaraujo\\": "src/"
-        }
+  "name": "renatoaraujo/debug",
+  "description": "Debug for PHP projects",
+  "homepage": "https://github.com/renatoaraujo/debug",
+  "version": "0.5.0",
+  "type": "library",
+  "keywords": [
+    "debugging",
+    "logging",
+    "monolog"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Renato Rodrigues de Araujo",
+      "email": "renato.r.araujo@gmail.com"
     }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=5.3",
+    "monolog/monolog": "^1.21"
+  },
+  "autoload": {
+    "psr-4": {
+      "Renatoaraujo\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8",
+    "codeclimate/php-test-reporter": "^0.3.2"
+  },
+  "config": {
+    "bin-dir": "bin"
+  },
+  "scripts": {
+    "test": "./bin/phpunit"
+  }
 }
