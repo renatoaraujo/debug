@@ -31,7 +31,7 @@ class Debug
      *
      * @var string logPath
      */
-    protected static $logPath = __DIR__ . '/../logs/debug.log';
+    protected static $logPath = (__DIR__) . '/../logs/debug.log';
 
     /**
      * Log identifier name
@@ -47,7 +47,8 @@ class Debug
      */
     public static function dump()
     {
-        $path = array_shift(debug_backtrace());
+        $backtrace = debug_backtrace();
+        $path = array_shift($backtrace);
         $display = "{$path['file']} on line {$path['line']}";
 
         if (is_array($path['args']) && !empty($path['args'])) {
@@ -71,7 +72,8 @@ class Debug
      */
     public static function printr()
     {
-        $path = array_shift(debug_backtrace());
+        $backtrace = debug_backtrace();
+        $path = array_shift($backtrace);
         $display = "{$path['file']} on line {$path['line']} ";
 
         if (is_array($path['args']) && !empty($path['args'])) {
@@ -95,7 +97,8 @@ class Debug
      */
     public static function json()
     {
-        $path = array_shift(debug_backtrace());
+        $backtrace = debug_backtrace();
+        $path = array_shift($backtrace);
 
         $arr_json = array();
         $arr_json['file'] = "{$path['file']} on line {$path['line']} ";
@@ -122,7 +125,8 @@ class Debug
      */
     public static function log()
     {
-        $path = array_shift(debug_backtrace());
+        $backtrace = debug_backtrace();
+        $path = array_shift($backtrace);
         $display = "{$path['file']} on line {$path['line']} - ";
 
         if (is_array($path['args']) && !empty($path['args'])) {
@@ -146,7 +150,8 @@ class Debug
      */
     public static function console()
     {
-        $path = array_shift(debug_backtrace());
+        $backtrace = debug_backtrace();
+        $path = array_shift($backtrace);
         $display = "{$path['file']} on line {$path['line']} \n";
 
         if (is_array($path['args']) && !empty($path['args'])) {
