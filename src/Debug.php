@@ -2,11 +2,15 @@
 
 namespace Renatoaraujo;
 
+use Monolog\Formatter\NormalizerFormatter;
+use Monolog\Formatter\ScalarFormatter;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Monolog\Processor\IntrospectionProcessor;
 
 /**
  * Class to debug applications on screen or logging outputs
+ * This class create the basic interaction for debug with many options.
  *
  * @category Library
  *
@@ -28,65 +32,96 @@ class Debug
 
     /**
      * Log path for saving logs
-     *
+     * Change the log path to another path inside your application as the example below
+     * @example Debug::$strLogPath = 'path/to/my/logs';
      * @var string logPath
      */
-    protected static $logPath = (__DIR__) . '/../logs/debug.log';
+    public static $strLogPath = (__DIR__) . '/../logs/debug.log';
 
     /**
      * Log identifier name
-     *
+     * Change the name of your log as the example below
+     * @example Debug::$strLogName = 'NameOfMyLog';
      * @var string logName
      */
-    protected static $logName = 'Renatoaraujo\Debug';
+    public static $strLogName = 'Renatoaraujo\Debug';
 
     /**
-     * Dump method to debug displaying on screen.
-     *
+     * Log date time format
+     * Change the date format for your logging as the example below
+     * @example Debug::$strLogDateTime = 'd/m/Y His';
+     * @var string logDateTime
+     */
+    public static $strLogDateTime = 'Y-m-d H:i:s';
+
+    /**
+     * Dump method to debug using var_dump displaying as html on screen.
+     * You can send unlimited parameters from any type to this method and will be listed in screen as arguments
+     * To end the application after debug send the string 'exit' or 'die' as the param. See example below
+     * @example Debug::dump($strArgument1, $intArgument2, $arrArgument3, 'exit');
      * @return string
      */
     public static function dump()
     {
         $backtrace = debug_backtrace();
-        $path = array_shift($backtrace);
-        $display = "{$path['file']} on line {$path['line']}";
+        $arrPath = array_shift($backtrace);
+        $strDisplay = "{$arrPath['file']} on line {$arrPath['line']}";
+        $booEndApplication = false;
 
-        if (is_array($path['args']) && !empty($path['args'])) {
-            foreach ($path['args'] as $key => $value) {
+        if (is_array($arrPath['args']) && !empty($arrPath['args'])) {
+            foreach ($arrPath['args'] as $intKey => $mixValue) {
+                if ($mixValue === 'exit') {
+                    $booEndApplication = true;
+                }
                 ob_start();
-                var_dump($value);
-                $display .= '<br/><br/><b style="color:red;">Argument ' . ($key + 1) . '</b><br />';
-                $display .= '<pre>' . ob_get_contents() . '</pre>';
+                var_dump($mixValue);
+                $strDisplay .= '<br/><br/><b style="color:red;">Argument ' . ($intKey + 1) . '</b><br />';
+                $strDisplay .= '<pre>' . ob_get_contents() . '</pre>';
                 ob_end_clean();
             }
         }
 
-        return $display;
+        if ($booEndApplication) {
+            exit($strDisplay);
+        }
+
+        echo $strDisplay;
+        return $strDisplay;
     }
 
     /**
-     * Dump method to debug displaying on screen.
-     * Same as Debug::dump() but with print_r method.
-     *
+     * Dump method to debug using print_r displaying as html on screen.
+     * You can send unlimited parameters from any type to this method and will be listed in screen as arguments
+     * To end the application after debug send the string 'exit' or 'die' as the param. See example below
+     * @example Debug::dump($strArgument1, $intArgument2, $arrArgument3, 'exit');
      * @return string
      */
     public static function printr()
     {
         $backtrace = debug_backtrace();
-        $path = array_shift($backtrace);
-        $display = "{$path['file']} on line {$path['line']} ";
+        $arrPath = array_shift($backtrace);
+        $strDisplay = "{$arrPath['file']} on line {$arrPath['line']}";
+        $booEndApplication = false;
 
-        if (is_array($path['args']) && !empty($path['args'])) {
-            foreach ($path['args'] as $key => $value) {
+        if (is_array($arrPath['args']) && !empty($arrPath['args'])) {
+            foreach ($arrPath['args'] as $intKey => $mixValue) {
+                if ($mixValue === 'exit') {
+                    $booEndApplication = true;
+                }
                 ob_start();
-                print_r($value);
-                $display .= '<br/><br/><b style="color:red;">Argument ' . ($key + 1) . '</b><br />';
-                $display .= '<pre>' . ob_get_contents() . '</pre>';
+                print_r($mixValue);
+                $strDisplay .= '<br/><br/><b style="color:red;">Argument ' . ($intKey + 1) . '</b><br />';
+                $strDisplay .= '<pre>' . ob_get_contents() . '</pre>';
                 ob_end_clean();
             }
         }
 
-        return $display;
+        if ($booEndApplication) {
+            exit($strDisplay);
+        }
+
+        echo $strDisplay;
+        return $strDisplay;
     }
 
     /**
@@ -127,20 +162,28 @@ class Debug
     {
         $backtrace = debug_backtrace();
         $path = array_shift($backtrace);
-        $display = "{$path['file']} on line {$path['line']} - ";
+        $display = "{$path['file']} on line {$path['line']}";
+        $arrContext = [];
 
         if (is_array($path['args']) && !empty($path['args'])) {
             foreach ($path['args'] as $key => $value) {
-                ob_start();
-                var_dump($value);
-                $display .= "Argument " . ($key + 1) . ": " . ob_get_contents();
-                ob_end_clean();
+                $arrContext[$key + 1] = $value;
             }
         }
 
-        $log = new Logger(self::$logName);
-        $log->pushHandler(new StreamHandler(self::$logPath));
-        return $log->debug($display);
+        $log = new Logger(self::$strLogName);
+        # add some content to log the content
+        $introspectionProcessor = new IntrospectionProcessor();
+        $log->pushProcessor($introspectionProcessor);
+
+        $streamHandler = new StreamHandler(self::$strLogPath, Logger::DEBUG);
+        $streamHandler->setFormatter(
+            new NormalizerFormatter(self::$strLogDateTime)
+        );
+
+        $log->pushHandler($streamHandler);
+
+        return $log->debug($display, $arrContext);
     }
 
     /**
