@@ -4,18 +4,17 @@ require_once '../vendor/autoload.php';
 
 use Renatoaraujo\Debug;
 
-$arrSomeArray = [
-    'Hello' => 'World',
+$arrExample = [
+    'Example' => 'Content',
+    'ExampleSubArray' => [
+        'ExampleChild1' => 1,
+        'ExampleChild2' => 2,
+        'ExampleChild3' => 3,
+    ],
 ];
-$strSomeString = 'Hello World';
 
+$strExample = 'Example as string';
 
-Debug::dump($arrSomeArray, 1, 'exit');
+$intExample = 12837124;
 
-//echo 'audh';
-
-//echo Debug::printr($arrSomeArray);
-//echo Debug::json($arrSomeArray);
-//echo Debug::console($arrSomeArray);
-Debug::$strLogDateTime = 'asd';
-//echo Debug::log($arrSomeArray, $strSomeString);
+Debug::dump($arrExample, $strExample, $intExample);
