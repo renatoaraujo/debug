@@ -3,7 +3,6 @@
 namespace Renatoaraujo;
 
 use Monolog\Formatter\NormalizerFormatter;
-use Monolog\Formatter\ScalarFormatter;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Processor\IntrospectionProcessor;
@@ -13,7 +12,6 @@ use Monolog\Processor\IntrospectionProcessor;
  * This class create the basic interaction for debug with many options.
  *
  * @category Library
- *
  * @package Renatoaraujo
  *
  * @author Renato Rodrigues de Araujo <renato.r.araujo@gmail.com>
@@ -23,7 +21,7 @@ use Monolog\Processor\IntrospectionProcessor;
  * @uses \Monolog\Logger
  * @uses \Monolog\Handler\StreamHandler
  *
- * @version Release: 1.0
+ * @version 1.1.0
  *
  * @link https://github.com/renatoaraujo/debug
  */
@@ -55,6 +53,21 @@ class Debug
     public static $strLogDateTime = 'Y-m-d H:i:s';
 
     /**
+     * HTML template file for debug
+     * Change the template file for your logging as the example below.
+     * @example Debug::$strTemplateFile = 'myAwesomeTemplate';
+     * The template file MUST have HTML content and the '@debugcontext' string in body to bind
+     * @var string $strTemplateFile
+     */
+    public static $strTemplateFile = (__DIR__) . '/../template/default.html';
+
+    /**
+     * Used only to manipulate the debug context
+     * @var string $strColorfulContext
+     */
+    protected static $strColorfulContext;
+
+    /**
      * Dump method to debug using var_dump displaying as html on screen.
      * You can send unlimited parameters from any type to this method and will be listed in screen as arguments
      * To end the application after debug send the string 'exit' or 'die' as the param. See example below
@@ -65,27 +78,38 @@ class Debug
     {
         $backtrace = debug_backtrace();
         $arrPath = array_shift($backtrace);
-        $strDisplay = "{$arrPath['file']} on line {$arrPath['line']}";
+        $debugContext = '';
+        $filePathContext = $arrPath['file'];
+        $lineContext = $arrPath['line'];
+
+        $strDisplay = '<p>' . $filePathContext . ' on line ' . $lineContext . '</p>';
         $booEndApplication = false;
 
         if (is_array($arrPath['args']) && !empty($arrPath['args'])) {
             foreach ($arrPath['args'] as $intKey => $mixValue) {
-                if ($mixValue === 'exit') {
+
+                if ($mixValue === 'exit' || $mixValue === 'die') {
                     $booEndApplication = true;
+                    continue;
                 }
+
                 ob_start();
                 var_dump($mixValue);
-                $strDisplay .= '<br/><br/><b style="color:red;">Argument ' . ($intKey + 1) . '</b><br />';
+                $strDisplay .= 'Argument ' . ($intKey + 1) . '<br />';
                 $strDisplay .= '<pre>' . ob_get_contents() . '</pre>';
+                $debugContext .= '<p class="keyword">Argument ' . ($intKey + 1) . '</p>';
+                $debugContext .= self::colorfulContext($mixValue, ob_get_contents());
                 ob_end_clean();
             }
         }
 
+        $strHtmlDisplay = self::displayHtmlBody($debugContext, $filePathContext, $lineContext);
+
         if ($booEndApplication) {
-            exit($strDisplay);
+            exit($strHtmlDisplay);
         }
 
-        echo $strDisplay;
+        echo $strHtmlDisplay;
         return $strDisplay;
     }
 
@@ -100,57 +124,80 @@ class Debug
     {
         $backtrace = debug_backtrace();
         $arrPath = array_shift($backtrace);
-        $strDisplay = "{$arrPath['file']} on line {$arrPath['line']}";
+        $debugContext = '';
+        $filePathContext = $arrPath['file'];
+        $lineContext = $arrPath['line'];
+
+        $strDisplay = '<p>' . $filePathContext . ' on line ' . $lineContext . '</p>';
         $booEndApplication = false;
 
         if (is_array($arrPath['args']) && !empty($arrPath['args'])) {
             foreach ($arrPath['args'] as $intKey => $mixValue) {
-                if ($mixValue === 'exit') {
+                if ($mixValue === 'exit' || $mixValue === 'die') {
                     $booEndApplication = true;
+                    continue;
                 }
                 ob_start();
                 print_r($mixValue);
-                $strDisplay .= '<br/><br/><b style="color:red;">Argument ' . ($intKey + 1) . '</b><br />';
+                $strDisplay .= 'Argument ' . ($intKey + 1) . '<br />';
                 $strDisplay .= '<pre>' . ob_get_contents() . '</pre>';
+                $debugContext .= '<span class="keyword">Argument ' . ($intKey + 1) . '</span><br />'
+                    . ob_get_contents();
                 ob_end_clean();
             }
         }
 
+        $strHtmlDisplay = self::displayHtmlBody($debugContext, $filePathContext, $lineContext);
+
         if ($booEndApplication) {
-            exit($strDisplay);
+            exit($strHtmlDisplay);
         }
 
-        echo $strDisplay;
+        echo $strHtmlDisplay;
         return $strDisplay;
     }
 
     /**
-     * Dump method to debug displaying on screen.
-     * Same as Debug::dump() and Debug::printr() but return JSON string.
-     *
+     * Dump method to debug displaying as json on screen.
+     * You can send unlimited parameters from any type to this method and will be listed in screen as arguments
+     * To end the application after debug send the string 'exit' or 'die' as the param. See example below
+     * @example Debug::dump($strArgument1, $intArgument2, $arrArgument3, 'exit');
      * @return string
      */
     public static function json()
     {
         $backtrace = debug_backtrace();
-        $path = array_shift($backtrace);
+        $arrPath = array_shift($backtrace);
+        $booEndApplication = false;
 
-        $arr_json = array();
-        $arr_json['file'] = "{$path['file']} on line {$path['line']} ";
-        $arr_json['arguments'] = array();
+        $arrJsonDisplay = [];
+        $arrJsonDisplay['file'] = "{$arrPath['file']} on line {$arrPath['line']} ";
+        $arrJsonDisplay['debug'] = [];
 
-        if (is_array($path['args']) && !empty($path['args'])) {
-            foreach ($path['args'] as $key => $value) {
+        if (is_array($arrPath['args']) && !empty($arrPath['args'])) {
+            foreach ($arrPath['args'] as $intKey => $mixValue) {
+                if ($mixValue === 'exit' || $mixValue === 'die') {
+                    $booEndApplication = true;
+                    continue;
+                }
+
                 array_push(
-                    $arr_json['arguments'],
+                    $arrJsonDisplay['debug'],
                     array(
-                        "Argument " . ($key + 1) => $value
+                        "Argument " . ($intKey + 1) => $mixValue
                     )
                 );
             }
         }
 
-        return json_encode($arr_json, JSON_PRETTY_PRINT);
+        $strFormattedJson = json_encode($arrJsonDisplay, JSON_PRETTY_PRINT);
+
+        if ($booEndApplication) {
+            exit($strFormattedJson);
+        }
+
+        echo $strFormattedJson;
+        return $strFormattedJson;
     }
 
     /**
@@ -209,5 +256,101 @@ class Debug
         $stdout = fopen("php://stdout", "w");
         fwrite($stdout, $display);
         return fclose($stdout);
+    }
+
+    /**
+     * Method to create the html for debugging
+     * @param string $strDebugContext
+     * @param string $strFilePathContext
+     * @param int $intLineContext
+     * @return string
+     */
+    protected static function displayHtmlBody($strDebugContext, $strFilePathContext = null, $intLineContext = null)
+    {
+        $strServerUrlRequestContext = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' .
+            "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}";
+
+        $strDateTimeContext = date('Y-m-d H:i:s');
+
+        $strFileContent = file_get_contents(self::$strTemplateFile);
+        $strHtmlContent = str_replace('@debugcontext', $strDebugContext, $strFileContent);
+        $strHtmlContent = str_replace('@filepathcontext', $strFilePathContext, $strHtmlContent);
+        $strHtmlContent = str_replace('@linecontext', $intLineContext, $strHtmlContent);
+        $strHtmlContent = str_replace('@serverurlrequest', $strServerUrlRequestContext, $strHtmlContent);
+        $strHtmlContent = str_replace('@datetimeContext', $strDateTimeContext, $strHtmlContent);
+
+        return $strHtmlContent;
+    }
+
+    /**
+     * @param $mixContext
+     * @param $strDebugContext
+     * @return mixed
+     */
+    protected static function colorfulContext($mixContext, $strDebugContext)
+    {
+        self::$strColorfulContext = $strDebugContext;
+        self::applyHtmlTags($mixContext);
+        return self::$strColorfulContext;
+    }
+
+    /**
+     * Method to apply the styles on debug context
+     * @param mixed $mixValue
+     * @param bool $isArrayIndex
+     * @return mixed
+     */
+    protected static function applyHtmlTags($mixValue, $isArrayIndex = false)
+    {
+        $strVarType = gettype($mixValue);
+
+        switch ($strVarType) {
+            case 'string':
+                $strHtmlTagsValue = '"<span class="string">' . $mixValue . '</span>"';
+                $mixValue = '"' . $mixValue . '"';
+                self::applyHtmlTagsToContext($mixValue, $strHtmlTagsValue);
+                break;
+
+            case 'integer':
+                $strHtmlTagsValue = 'int(<span class="number">' . $mixValue . '</span>)';
+                $mixValue = 'int(' . $mixValue . ')';
+                self::applyHtmlTagsToContext($mixValue, $strHtmlTagsValue);
+                break;
+
+            case 'double':
+                $strHtmlTagsValue = 'float(<span class="number">' . $mixValue . '</span>)';
+                $mixValue = 'float(' . $mixValue . ')';
+                self::applyHtmlTagsToContext($mixValue, $strHtmlTagsValue);
+                break;
+
+            case 'array':
+                array_walk_recursive($mixValue, function ($mixValue, $mixKey) {
+                    self::applyHtmlTags($mixKey, true);
+                    self::applyHtmlTags($mixValue);
+                });
+                break;
+
+            default:
+                break;
+        }
+
+        if ($isArrayIndex) {
+            $strHtmlTagsValue = '["<span class="literal">' . $mixValue . '</span>"]';
+            $mixValue = '["' . $mixValue . '"]';
+            self::applyHtmlTagsToContext($mixValue, $strHtmlTagsValue);
+        }
+
+        return self::$strColorfulContext;
+    }
+
+    /**
+     * Method apply the replacement of html tags
+     * @param string $mixValue
+     * @param string $strHtmlTagsValue
+     */
+    protected static function applyHtmlTagsToContext($mixValue, $strHtmlTagsValue)
+    {
+        self::$strColorfulContext = str_replace($mixValue, $strHtmlTagsValue, self::$strColorfulContext);
+        return;
     }
 }
