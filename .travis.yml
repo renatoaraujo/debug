@@ -1,15 +1,25 @@
 language: php
+
 php:
   - 5.6
   - 7.0
-  - hhvm
+
+matrix:
+  allow_failures:
+    - php: nightly
+    - php: hhvm
+
 sudo: false
+
 before_install:
   - composer self-update
+
 install:
   - composer install
+
 script:
   - phpunit
+
 addons:
   code_climate:
     repo_token: 44e7b241ad59ec2f8e67b242b344e5f9b96d3b99d6246816593392a5f6386b53
